@@ -26,7 +26,7 @@ Some base library functions are excluded from this mechanism to preserve the app
 
 rir/src/api.cpp. Represents the interface between R and the compiler (C++ code). The changes found in this file provide access to the promises counter CREATED_PROMISES.   
 
--On gnuR repository, we consider this version to be our true baseline, without any kind of modification or instrumentation. https://github.com/reactorlabs/gnur/tree/b41208a5541905a6977bbc3c03b2bc4ba8c8d03c
+- On gnuR repository, we consider this version to be our true baseline, without any kind of modification or instrumentation. https://github.com/reactorlabs/gnur/tree/b41208a5541905a6977bbc3c03b2bc4ba8c8d03c
 
 Cade changes can be found here:  https://github.com/reactorlabs/gnur/compare/b41208a5541905a6977bbc3c03b2bc4ba8c8d03c...c20b7d4d7f0e36d15b10750b581aadfb0f0ad347 . 
 Relevant changes can be found in file memory.c, where CREATED_PROMISES global counter gets incremented in the function mkPROMISE (R's C level function that creates promises). 
