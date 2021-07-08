@@ -1,0 +1,557 @@
+---
+title: "Performance"
+output:
+    html_document:
+        toc: true
+        toc_depth: 3
+        toc_float: true
+        number_sections: true
+        theme: cerulean
+        highlight: pygments
+        code_folding: hide
+        fig_width: 9
+        fig_height: 3
+        css: style.css
+params:
+    datadir: "./data"
+    graphdir: "./graphs"
+    macrodir: "./macros"
+---
+
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+## https://bookdown.org/yihui/rmarkdown-cookbook/source-script.html
+library(scales)
+source("analysis.R", local = knitr::knit_global())
+```
+
+# H3.1: Peformance of base Ř vs. Ř strict
+
+This experiment shows the comparison of performance on our benchmarks
+for the base version of Ř and Ř strict.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+performanceExperiment <- list(
+  `Ř`        = 1174869738,     # rir ac583eac
+  `Ř strict` = 1174881563      # rir 1a563707
+)
+```
+
+This experiment shows the comparison of performance on our benchmarks
+for the base version of Ř and Ř strict, but without the optimizer
+(everything runs in the bc interpreter).
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+performanceExperiment_bc <- list(
+  `Ř`        = 1172663147,     # rir 2872a79
+  `Ř strict` = 1172677834      # rir 9c038ed
+)
+```
+
+# H3.2: Promise allocations
+
+This experiment compares the number of promise allocations in Ř and Ř strict;
+the baseline is GNUR.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+# Run the following from the RBenchmarking dir with the given commits checked out and built (fix the paths for your setup):
+#   Setup/run.sh ~/RBenchmarking/rebench.conf ~/RBenchmarking/Benchmarks/ ~/rir/external/custom-r "e:PIR-LLVM"
+#   INLINE_ALL_PROMS=0 Setup/run.sh ~/RBenchmarking/rebench.conf ~/RBenchmarking/Benchmarks/ ~/rir/build/release "e:PIR-LLVM"
+#   INLINE_ALL_PROMS=1 Setup/run.sh ~/RBenchmarking/rebench.conf ~/RBenchmarking/Benchmarks/ ~/rir/build/release "e:PIR-LLVM"
+# Each run produces the file ~/dataPromises
+# Rename to the appropriate name (eg. gnur-promises.csv)
+promiseReductionExperiment <- list(
+  `GNU R`    = "gnur-promises",         # gnur c20b7d4, rir c3eb11c, RBenchmarking 5f34747
+  `Ř`        = "rsh-promises",          # gnur c20b7d4, rir c3eb11c, RBenchmarking acc5820
+  `Ř strict` = "rsh-strict-promises"    # gnur c20b7d4, rir c3eb11c, RBenchmarking acc5820
+)
+```
+
+This experiment shows the impact on GC of base Ř and Ř strict, and the percentage
+speedup due to GC.
+# Each run produces an extra artifact dataGC.csv. One value per benchmark. 
+# Values represent 'seconds spent on GC in 10 iterations'
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+gcExperiment <- list(
+  `Ř`        = 1177940528,          # rir 30db34d3
+  `Ř strict` = 1177270642           # rir 002f8f75
+)
+```
+
+This experiment shows the impact on GC of base Ř and Ř strict, and the percentage
+speedup due to GC, but without the optimizer.
+# Each run produces an extra artifact dataGC.csv. One value per benchmark. 
+# Values represent 'seconds spent on GC in 10 iterations'
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+gcExperiment_bc <- list(
+  `Ř`        = 1179817714,     # rir 0bc38882
+  `Ř strict` = 1179834991      # rir 82063314
+)
+```
+
+# Helpers
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+fetch.bmdash <- function(job) {
+  url.bmdash.start <- "https://rir-benchmarks.prl.fit.cvut.cz/job/"
+  url.bmdash.suffix <- "?selection=promisebreaker&execution=all&warmup=5"
+  dir.create("data", showWarnings=F)
+  setwd("data")
+  file <- paste0(job, ".data")
+  if (!file.exists(file))
+    download.file(paste0(url.bmdash.start, file, url.bmdash.suffix), file)
+
+
+
+
+  ###################################
+  #data <- read.table(file, sep="\t")
+  data <- read.table(file)
+  data <- data[data$V4 == "ms",]
+  vm <- "Ř"
+  
+
+aa = as.character(sapply(as.character(data$V8), function(s)
+                     switch(s,
+                      "simple_reduced"="simple",
+                      "shootout_reduced"="shootout",
+                      "real_thing_extra"="real_thing",
+                      "are-we-fast-r"="are-we-fast-r",
+                      "real_thing_reduced"="real_thing",
+                      "simple_extra"="simple",
+                      "shootout_extra"="shootout"), USE.NAMES = FALSE))
+
+
+  data2 = data.frame(vm=vm, commit=job, suite=aa,benchmark=data$V6,ms=data$V3,warm=vapply(data$V2, function(x) if( x > 5)  1L else  0L,  FUN.VALUE = double(1)) )
+
+ 
+  #for (bm in unique(data2$benchmark))
+  #  data2[data2$benchmark == bm,]$warm = c(sample(0, 5, repl=T),
+  #                                       sample(1, nrow(data2[data2$benchmark == bm,])-5, repl=T))
+
+ # data2$suite = sapply(as.character(data2$suite), function(s)
+ #                    switch(s,
+ #                     "simple_reduced"="simple",
+ #                     "shootout_reduced"="shootout",
+ #                     "real_thing_extra"="real_thing",
+ #                     "are-we-fast-r"="are-we-fast-r",
+ #                     "real_thing_reduced"="real_thing",
+ #                     "simple_extra"="simple",
+ #                     "shootout_extra"="shootout"), USE.NAMES = FALSE)
+
+  data2$row <- 1:nrow(data2)
+
+  setwd("..")
+  data2
+
+  #####################
+
+
+
+
+  
+  
+  #res <- read.csv(file, header=TRUE, strip.white=TRUE)
+  #res$row <- 1:nrow(res)
+  #setwd("..")
+  #res
+}
+
+fetch.gitlab.gc <- function(job) {
+  url.gitlab.start <- "https://gitlab.com/rirvm/rir_mirror/-/jobs/"
+  url.gitlab.suffix <- "/artifacts/raw/dataGC.csv"
+  dir.create("data", showWarnings=F)
+  setwd("data")
+  file <- paste0(job, ".csv")
+  if (!file.exists(file))
+    download.file(paste0(url.gitlab.start, job, url.gitlab.suffix), file)
+  res <- read.csv(file, header=TRUE, strip.white=TRUE)
+  res$row <- 1:nrow(res)
+  setwd("..")
+  res
+}
+
+fetch.prom.counters <- function(job) {
+  warm <- 10
+  cold <- 5
+  dir.create("data", showWarnings=F)
+  setwd("data")
+  file <- paste0(job, ".csv")
+  if (!file.exists(file))
+    stop(paste("file", file, "not found"))
+  res <- read.csv(file, header=FALSE, strip.white=TRUE)
+  colnames(res) <- c("suite","benchmark","benchmarkId","createdPromises","createdPromisesAst","inlinedPromises")
+  res$warm <- c(rep(0L, cold), rep(1L, warm))
+  res$row <- 1:nrow(res)
+  setwd("..")
+  res
+}
+
+geometric.mean <- function(x, na.rm=TRUE) {
+  if (is.null(nrow(x))) {
+    exp(mean(log(x), na.rm=TRUE))
+  } else {
+    exp(apply(log(x), 2, mean, na.rm=na.rm))
+  }
+}
+
+printResult <- function(name, result, digits=3, space=F) {
+  name = gsub("μ", "mu", name)
+  r = format(result, digits=digits)
+  cat(paste0("\\newcommand{\\result",name,"}{",r))
+  if (space)
+    cat("\\xspace")
+  cat("}\n")
+}
+
+fetch_jobs <- function(jobs, fetcher) {
+  data <- NULL
+  
+  for (i in seq_along(jobs)) {
+    job <- jobs[i]
+    ex = names(job)
+    d <- fetcher(job)
+  
+    d$experiment = ex
+    if (is.null(data))
+      data <- d
+    else {
+      print(data)
+      data <- merge(data, d, all=TRUE)
+      
+    }
+    
+  }
+  
+  data
+  
+}
+
+normalize <- function(data, removeNormalized, baseline) {
+  data$speedup = 1
+  for (b in unique(data$benchmark)) {
+    if (missing(baseline))
+      e1 = unique(data$experiment)[1]
+    else
+      e1 = baseline
+    m = median(data[data$benchmark == b & data$experiment == e1 & data$warm == 1, ]$ms)
+    data[data$benchmark == b, ]$speedup <-
+      m/data[data$benchmark == b, ]$ms
+    if (removeNormalized)
+      data = data[-which(data$benchmark == b & data$experiment == e1), ]
+  }
+  data
+}
+
+shorten_suite <- function(s) {
+  switch(s,
+         "are-we-fast-r"="awf",
+         "real_thing"="re",
+         "real_thing_annotations"="reA",
+         "shootout"="sht",
+         "shootout_annotations"="shA",
+         "simple"="μ")
+}
+
+printable_name <- function(s) {
+  s <- gsub("_", " ", s)
+  s <- gsub(" ", "", s)
+  substr(s, 1, 1) <- toupper(substr(s, 1, 1))
+  s
+}
+
+bm_plot_name <- function(s) {
+  lapply(s, function(x) bmMap[bmMap$bm == x, ]$Id)
+}
+```
+
+# Benchmark selection
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+# names of the benchmarks, they are transformed to labels later
+selection <- c(
+  "Bounce",
+  "Mandelbrot",
+  "Storage",
+  "flexclust",
+  "binarytrees",
+  "fasta",
+  "fastaredux",
+  "fannkuchredux",
+  "knucleotide",
+  "nbody",
+  "pidigits",
+  "regexdna",
+  "reversecomplement",
+  "spectralnorm"
+)
+
+bmMap <- as.data.frame(list(Id = c("bnc", "mnd", "sto", "flx", "bin", "fst", "far", "fnk", "knu", "nbo", "pdg", "rgx", "rev", "spn"),
+                            # Id = formatC(1:length(selection),width = 2, flag = "0"),
+                            bm = selection,
+                            Benchmark = printable_name(selection),
+                            Suite = c(rep("Are we fast", 3), rep("Real thing", 1), rep("Shootout", 10))))
+```
+
+# Fetch data
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+perf <- fetch_jobs(performanceExperiment, fetch.bmdash)
+perf_bc <- fetch_jobs(performanceExperiment_bc, fetch.bmdash)
+prom <- fetch_jobs(promiseReductionExperiment, fetch.prom.counters)
+gcpr <- fetch_jobs(gcExperiment, fetch.gitlab.gc)
+gcpr_bc <- fetch_jobs(gcExperiment_bc, fetch.gitlab.gc)
+```
+
+# Plots
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+H3.1 <- function(perf, kind = "") {
+  perf$experiment = factor(perf$experiment, c("Ř", "Ř strict"))
+  perf$benchmark_ = perf$benchmark
+  perf$suite_short = lapply(perf$suite, shorten_suite)
+  perf <- normalize(perf, T, "Ř")
+  perf_ <- perf[perf$benchmark %in% selection & perf$warm == 1, ]
+  perf_$benchmark <- factor(perf_$benchmark, levels = rev(unique(perf_$benchmark)))
+  lo <- round(min(perf_$speedup), digits = 1)
+  hi <- round(max(perf_$speedup), digits = 1)
+  
+  perf_plot <-
+    ggplot(perf_, aes(benchmark, speedup)) +
+    geom_boxplot() +
+    geom_hline(aes(yintercept=1)) +
+    scale_y_continuous(breaks = seq(lo, hi, 0.1)) +
+    labs(y = "", x = "") +
+    scale_x_discrete(labels = bm_plot_name) +
+    coord_flip()
+
+  save_graph(perf_plot, paste0("rshStrictPerf", kind))
+}
+H3.1(perf)
+H3.1(perf_bc, "Bc")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+H3.2a.norm <- function(prom) {
+  prom$experiment = factor(prom$experiment, c("GNU R", "Ř", "Ř strict"))
+  prom$benchmark_ = prom$benchmark
+  prom$suite_short = lapply(prom$suite, shorten_suite)
+  prom$gnur <- NA
+  prom[prom$experiment == "Ř" & prom$warm == 1, ]$gnur <- prom[prom$experiment == "GNU R" & prom$warm == 1, ]$createdPromises
+  for (b in unique(prom$benchmark)) {
+    n <- prom[prom$benchmark == b & prom$experiment == "Ř" & prom$warm == 1, ]$gnur
+    n[2:length(n)] <- NA
+    prom[prom$benchmark == b & prom$experiment == "Ř" & prom$warm == 1, ]$gnur <- n
+  }
+  prom$gnur2 <- NA
+  prom[prom$experiment == "Ř" & prom$warm == 1, ]$gnur2 <- prom[prom$experiment == "GNU R" & prom$warm == 1, ]$createdPromises
+  prom[prom$experiment == "Ř strict" & prom$warm == 1, ]$gnur2 <- prom[prom$experiment == "GNU R" & prom$warm == 1, ]$createdPromises
+  prom$low <- NA
+  prom[prom$experiment == "Ř" & prom$warm == 1, ]$low <- prom[prom$experiment == "Ř" & prom$warm == 1, ]$createdPromises
+  for (b in unique(prom$benchmark)) {
+    n <- prom[prom$benchmark == b & prom$experiment == "Ř" & prom$warm == 1, ]$low
+    n[2:length(n)] <- NA
+    prom[prom$benchmark == b & prom$experiment == "Ř" & prom$warm == 1, ]$low <- n
+  }
+  prom$low2 <- NA
+  prom[prom$experiment == "Ř strict" & prom$warm == 1, ]$low2 <- prom[prom$experiment == "Ř strict" & prom$warm == 1, ]$createdPromises
+  for (b in unique(prom$benchmark)) {
+    n <- prom[prom$benchmark == b & prom$experiment == "Ř strict" & prom$warm == 1, ]$low2
+    n[2:length(n)] <- NA
+    prom[prom$benchmark == b & prom$experiment == "Ř strict" & prom$warm == 1, ]$low2 <- n
+  }
+  prom$ms <- prom$createdPromises
+  prom <- normalize(prom, T, "GNU R")
+  prom$speedup <- 1/prom$speedup
+  prom_ <- prom[prom$benchmark %in% selection & prom$warm == 1, ]
+  prom_$benchmark <- factor(prom_$benchmark, levels = rev(unique(prom_$benchmark)))
+  
+  alpha <- 0.4
+  prom_plot <-
+    ggplot(prom_, aes(benchmark, speedup, fill=factor(experiment, levels = rev(levels(experiment))))) +
+    annotate("rect", fill = "grey", alpha = alpha, xmin = 1.5, xmax = 2.5, ymin = -Inf, ymax = Inf) +
+    annotate("rect", fill = "grey", alpha = alpha, xmin = 3.5, xmax = 4.5, ymin = -Inf, ymax = Inf) +
+    annotate("rect", fill = "grey", alpha = alpha, xmin = 5.5, xmax = 6.5, ymin = -Inf, ymax = Inf) +
+    annotate("rect", fill = "grey", alpha = alpha, xmin = 7.5, xmax = 8.5, ymin = -Inf, ymax = Inf) +
+    annotate("rect", fill = "grey", alpha = alpha, xmin = 9.5, xmax = 10.5, ymin = -Inf, ymax = Inf) +
+    annotate("rect", fill = "grey", alpha = alpha, xmin = 11.5, xmax = 12.5, ymin = -Inf, ymax = Inf) +
+    annotate("rect", fill = "grey", alpha = alpha, xmin = 13.5, xmax = 14.5, ymin = -Inf, ymax = Inf) +
+    geom_hline(yintercept=1) +
+    geom_col(position="dodge") +
+    geom_hline(yintercept=0) +
+    labs(y = "", x = "", fill = "Experiment") +
+    scale_x_discrete(labels = bm_plot_name) +
+    scale_fill_grey(start = 0.2, end = 0.6) +
+    coord_flip() +
+    geom_text(aes(label = ifelse(is.na(gnur), "", format(gnur, big.mark = ","))), y = 1.85, hjust = 1, vjust = 0.5, size = 2) +
+    # geom_text(aes(label = ifelse(is.na(low), "", ifelse(low / gnur2 < 0.02, formatC(low, width = 4), ""))),
+    #           position = position_dodge(0.85),
+    #           hjust = -1,
+    #           # vjust = 0.5,
+    #           size = 1.6) +
+    geom_text(aes(label = ifelse(is.na(low), "", ifelse(low / gnur2 < 0.02, formatC(low, width = 4), ""))),
+              y = 0.01,
+              hjust = 0,
+              vjust = 0.5,
+              nudge_x = 0.25,
+              size = 1.5) +
+    geom_text(aes(label = ifelse(is.na(low2), "", ifelse(low2 / gnur2 < 0.02, formatC(low2, width = 4), ""))),
+              y = 0.01,
+              hjust = 0,
+              vjust = 0.5,
+              nudge_x = -0.25,
+              size = 1.5) +
+    guides(fill = guide_legend(reverse = TRUE)) +
+    ylim(c(0.0, 1.8))
+
+  save_graph(prom_plot, "rshPromNorm")
+}
+H3.2a.table <- function(prom) {
+  prom$experiment = factor(prom$experiment, c("GNU R", "Ř", "Ř strict"))
+  prom <- prom[prom$benchmark %in% selection & prom$warm == 1, ]
+  prom <- prom %>% mutate(benchmark = bm_plot_name(benchmark))
+  prom <- prom[c("benchmark", "createdPromises", "experiment")]
+  prom <- reshape(prom, idvar = "benchmark", timevar = "experiment", direction = "wide")
+  prom <- prom %>% remove_rownames %>% column_to_rownames(var="benchmark")
+  colnames(prom) <- c("Ř strict", "Ř", "GNU R")
+  prom <- prom[c("GNU R", "Ř", "Ř strict")]
+  datatable(prom)
+}
+H3.2a.norm(prom)
+# H3.2a.table(prom)
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+H3.2b <- function(perf, perf_bc, gcpr, gcpr_bc) {
+
+  data <- data.frame(benchmark=character(),
+                     experiment=character(),
+                     kind=factor(levels = c("time", "gc")),
+                     ms=numeric(),
+                     stringsAsFactors=FALSE)
+  for (b in unique(perf$benchmark)) {
+    if (b %in% selection) {
+      for (e in unique(perf$experiment)) {
+        m = mean(perf[perf$benchmark == b & perf$experiment == e & perf$warm == 1, ]$ms)
+        data = data %>% add_row(benchmark = b, experiment = e, kind = "time", ms = m)
+      }
+    }
+  }
+  for (b in unique(perf_bc$benchmark)) {
+    if (b %in% selection) {
+      for (e in unique(perf_bc$experiment)) {
+        m = mean(perf_bc[perf_bc$benchmark == b & perf_bc$experiment == e & perf_bc$warm == 1, ]$ms)
+        data = data %>% add_row(benchmark = b, experiment = paste(e, "bc"), kind = "time", ms = m)
+      }
+    }
+  }
+  for (b in unique(gcpr$benchmarkName)) {
+    if (b %in% selection) {
+      for (e in unique(gcpr$experiment)) {
+        m = mean(gcpr[gcpr$benchmarkName == b & gcpr$experiment == e, ]$gc_time) * 100
+        data = data %>% add_row(benchmark = b, experiment = e, kind = "gc", ms = m)
+      }
+    }
+  }
+  for (b in unique(gcpr_bc$benchmarkName)) {
+    if (b %in% selection) {
+      for (e in unique(gcpr_bc$experiment)) {
+        m = mean(gcpr_bc[gcpr_bc$benchmarkName == b & gcpr_bc$experiment == e, ]$gc_time) * 100
+        data = data %>% add_row(benchmark = b, experiment = paste(e, "bc"), kind = "gc", ms = m)
+      }
+    }
+  }
+  data$mso <- data$ms
+  for (b in unique(data$benchmark))
+    for (e in unique(data$experiment)) {
+      t <- data[data$benchmark == b & data$experiment == e & data$kind == "time", ]$ms
+      g <- data[data$benchmark == b & data$experiment == e & data$kind == "gc", ]$ms
+      data[data$benchmark == b & data$experiment == e & data$kind == "time", ]$ms <- t - g
+    }
+  ss <<- data
+  
+  most <- data.frame(benchmark=character(),
+                     experiment=character(),
+                     gcReduction=numeric(),
+                     stringsAsFactors=FALSE)
+  for (b in unique(data$benchmark))
+    for (e in unique(data$experiment)) {
+      t <- data[data$benchmark == b & data$experiment == e & data$kind == "time", ]$ms
+      g <- data[data$benchmark == b & data$experiment == e & data$kind == "gc", ]$ms
+      r <- g / t
+      most = most %>% add_row(benchmark = b, experiment = e, gcReduction = r)
+    }
+  
+  most$diff <- 0
+  for (b in unique(most$benchmark)) {
+      s <- most[most$benchmark == b & most$experiment == "Ř", ]$gcReduction
+      t <- most[most$benchmark == b & most$experiment == "Ř strict", ]$gcReduction
+      most[most$benchmark == b & most$experiment == "Ř", ]$diff <- abs(s - t)
+      most[most$benchmark == b & most$experiment == "Ř strict", ]$diff <- abs(s - t)
+      s <- most[most$benchmark == b & most$experiment == "Ř bc", ]$gcReduction
+      t <- most[most$benchmark == b & most$experiment == "Ř strict bc", ]$gcReduction
+      most[most$benchmark == b & most$experiment == "Ř bc", ]$diff <- abs(s - t)
+      most[most$benchmark == b & most$experiment == "Ř strict bc", ]$diff <- abs(s - t)
+  }
+  
+  sss <<- most
+  
+  data <- data[data$experiment == "Ř" | data$experiment == "Ř strict", ]
+  data <- data[data$benchmark == "spectralnorm", ]
+
+  gc_plot <-
+    ggplot(data, aes(experiment, ms, fill=forcats::fct_rev(kind))) +
+    geom_bar(position = "stack", stat = "identity") +
+    # labs(y = "Promises created", x = "", fill = "Experiment") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    # theme(axis.title.y = element_text(vjust = 5)) +
+    scale_fill_grey(start = 0.6, end = 0.2) +
+    # coord_flip() +
+    facet_wrap( ~ benchmark)
+
+  save_graph(gc_plot, "rshGc")
+}
+H3.2b(perf, perf_bc, gcpr, gcpr_bc)
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+time_in_gc <- function(data, kind = "") {
+  data <- data[data$benchmarkName %in% selection, ]
+  aa <<- data
+  res <- data.frame(b=character(), l=numeric(), s=numeric(), r=numeric())
+  for (b in unique(data$benchmarkName)) {
+      lazy <- data[data$benchmarkName == b & data$experiment == "Ř", ]$gc_time * 100
+      strict <- data[data$benchmarkName == b & data$experiment == "Ř strict", ]$gc_time * 100
+      res = res %>% add_row(b = b, l = lazy, s = strict, r = strict/lazy)
+  }
+  
+  lo <- res[which.min(res$r),]
+  hi <- res[which.max(res$r),]
+  cat("Min time in GC in Ř strict / Ř", kind, ":", lo$r, "(", lo$b, ")\n")
+  cat("Max time in GC in Ř strict / Ř", kind, ":", hi$r, "(", hi$b, ")\n")
+  
+  colnames(res) <- c("Benchmark", "GC time lazy", "GC time strict", "GC time strict/lazy")
+
+  datatable(res)
+}
+time_in_gc(gcpr)
+time_in_gc(gcpr_bc, kind = "Bc")
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, eval=TRUE}
+bms <- function() {
+  data <- bmMap[c("Id", "Benchmark", "Suite")]
+  
+  data %>%
+    pmap_chr(function(Id, Benchmark, Suite) {
+      paste(Id, Benchmark, Suite, sep = "&")
+    }) %>%
+    paste(collapse = "\\\\\n") %>%
+    cat()
+  
+  data <- data %>% remove_rownames %>% column_to_rownames(var="Id")
+  datatable(data)
+}
+bms()
+```

@@ -1,0 +1,29 @@
+#!/usr/local/bin/rebench rebench.conf e:PIR-LLVM -df /builds/rirvm/rir_mirror/benchmarks.data -R
+# Execution Start: 2021-04-13T08:13:51.106835+00:00
+# Environment: {"userName": "root", "manualRun": false, "hostName": "runner-8zkb9w1v-project-10979413-concurrent-0", "osType": "Linux", "cpu": "Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz", "clockSpeed": 4000000000, "memory": 33399599104, "software": [{"name": "kernel", "version": "#140-Ubuntu SMP Thu Jan 28 05:20:47 UTC 2021"}, {"name": "kernel-release", "version": "4.15.0-136-generic"}, {"name": "architecture", "version": "x86_64"}], "denoise": {}}
+# Source: {"repoURL": null, "branchOrTag": null, "commitId": null, "commitMsg": null, "authorName": null, "committerName": null, "authorEmail": null, "committerEmail": null}
+1	1	5120.132000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	2	792.689000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	3	9990.714000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	4	125.780000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	5	115.396000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	6	115.939000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	7	119.978000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	8	116.392000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	9	116.718000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	10	116.651000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	11	115.545000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	12	114.755000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	13	114.754000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	14	119.425000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	15	116.090000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	16	116.277000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	17	116.424000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	18	115.565000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	19	114.344000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	20	114.374000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	21	129.404000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	22	115.863000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	23	115.877000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	24	115.691000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		
+1	25	113.887000	ms	total	nbody_naive	PIR-LLVM	shootout_reduced	20000	1		

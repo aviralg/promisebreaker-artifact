@@ -1,0 +1,107 @@
+\documentclass[review,nonacm,screen,acmsmall,anonymous=true]{acmart}
+\settopmatter{printfolios=false,printccs=false,printacmref=false}
+
+\usepackage{listings,multirow,wrapfig,xspace,paralist}
+\usepackage{xcolor,tikz,graphicx, pifont}
+%\usetikzlibrary{positioning}
+
+%% \newcommand{\authorcomment}[3]{\xspace\textcolor{#1}{{\bf #2} #3}\xspace}
+\newcommand{\authorcomment}[3]{}
+
+
+% For meta comments:
+\newcommand{\isit}[1]{\authorcomment{cyan}{Check}{#1}}
+\newcommand{\todo}[1]{\authorcomment{red}{TODO}{#1}}
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}
+\newcommand{\cmark}{\textcolor{green}{\ding{51}}}
+
+\newcommand{\always}{\emph{Always}\xspace}
+\newcommand{\sometimes}{\emph{Sometimes}\xspace}
+\newcommand{\sometimesStar}{\emph{Sometimes*}\xspace}
+\newcommand{\never}{\emph{Never}\xspace}
+\newcommand{\neverStar}{\emph{Never*}\xspace}
+\newcommand{\rdyn}{{\sf R-dyntrace}\xspace}
+\newcommand{\instr}{{\sf InstrumentR}\xspace}
+
+\definecolor{LightGray}{RGB}{247, 247, 247}
+\definecolor{Gray}{rgb}{.3,.3,.3}
+\definecolor{DarkGray}{rgb}{.5,.5,.5}
+
+%% https://www.davehofmann.de/defining-custom-language-templates-for-latex-listings/
+% Define Language
+\lstdefinelanguage{smalleR} {
+  % list of keywords
+  morekeywords={
+    for,
+    if,
+    else,
+    function
+  },
+  sensitive=true, % keywords are not case-sensitive
+  morecomment=[l]{\#}, % l is for line comment
+  morestring=[b]{"} % defines that strings are enclosed in double quotes
+}
+
+\lstset{
+  language={smalleR},
+  columns=flexible,
+  captionpos=b,
+  frame=single,
+  framerule=0pt,
+  framexleftmargin=1mm,
+  framexrightmargin=1mm,
+  tabsize=2,
+  belowskip=0pt,
+  basicstyle=\small\ttfamily,
+  backgroundcolor=\color{LightGray},
+  emphstyle=\sffamily,
+  keywordstyle=\bfseries,
+  commentstyle=\color{Gray}\em,
+  stringstyle=\color{Gray},
+  alsoletter={., _, $},
+  breaklines=true
+}
+
+\newcommand{\code}[1]{\lstinline |#1|\xspace}
+\renewcommand{\c}[1]{\lstinline |#1|\xspace}
+\newcommand{\strictr}{{\sf StrictR}\xspace}
+\newcommand{\lazr}{{\sf LazR}\xspace}
+\renewcommand{\Rsh}{{\sf\v R}\xspace}
+\newcommand{\Rshstrict}{{\sf\v R-strict}\xspace}
+
+\newcommand{\eg}{\emph{e.g.},\xspace}
+\newcommand{\ie}{\emph{i.e.},\xspace}
+\newcommand{\config}[1]{configuration \#{#1}}
+\newcommand{\cconfig}[1]{Configuration \#{#1}}
+
+\include{results}
+
+
+\begin{document}
+
+
+\begin{figure}[h]
+  \centering
+  \input{graphs/rshStrictPerf.tex}
+  \caption{Speedup of \Rshstrict}
+  \label{fig:speedup}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \input{graphs/rshStrictPerfBc.tex}
+  \caption{Speedup of \Rshstrict without optimizations}
+  \label{fig:speedup-bc}
+\end{figure}
+
+% \begin{figure}[h]
+%   \centering
+%   \input{graphs/rshPromNorm.tex}
+%   \caption{Promises allocated, normalized to GNU R. The right column shows GNU R's actual promises. If the bar is too small to display, we show the actual number of promises in the respective experiment.}
+%   \label{fig:gc-pressure}
+% \end{figure}
+
+
+
+
+\end{document}
