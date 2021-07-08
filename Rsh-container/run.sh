@@ -12,24 +12,24 @@ mkdir $ARTIFACTS_FOLDER
 #------------------ Experiment 1:  Rsh vs Rsh-strict  -------------------------------------------------------------
 cp /opt/rbenchmarking/rebench.conf.back /opt/rbenchmarking/rebench.conf
 #  te=4 ti=25
-# sed -i 's/invocations: 1/invocations: 4/' /opt/rbenchmarking/rebench.conf
-# sed -i 's/iterations: 15/iterations: 25/' /opt/rbenchmarking/rebench.conf
+sed -i 's/invocations: 1/invocations: 4/' /opt/rbenchmarking/rebench.conf
+sed -i 's/iterations: 15/iterations: 25/' /opt/rbenchmarking/rebench.conf
 
 ##### DEBUG ###
-sed -i 's/invocations: 1/invocations: 1/' /opt/rbenchmarking/rebench.conf
-sed -i 's/iterations: 15/iterations: 6/' /opt/rbenchmarking/rebench.conf
+#sed -i 's/invocations: 1/invocations: 1/' /opt/rbenchmarking/rebench.conf
+#sed -i 's/iterations: 15/iterations: 6/' /opt/rbenchmarking/rebench.conf
 ##########
 
 
 
-# Rsh baseline 
+# **** Rsh ***** 
 cd /opt/rir/build/release
 git checkout ac583eacf191f91d1a82c54b0f38f15d148cacf9
 ninja
 INLINE_ALL_PROMS=0 /opt/rbenchmarking/Setup/run.sh /opt/rbenchmarking/rebench.conf /opt/rbenchmarking/Benchmarks /opt/rir/build/release "e:PIR-LLVM -df $ARTIFACTS_FOLDER/1174869738.data -R"
 
 
-# Rsh strict
+# ***  Rsh strict ***
 cd /opt/rir/build/release
 git checkout 1a56370726981f5082b6445066d48e1c7d0db879
 ninja
@@ -43,13 +43,13 @@ INLINE_ALL_PROMS=1 /opt/rbenchmarking/Setup/run.sh /opt/rbenchmarking/rebench.co
 cp /opt/rbenchmarking/rebench.conf.back /opt/rbenchmarking/rebench.conf
 
 ##### DEBUG ###
-sed -i 's/invocations: 1/invocations: 1/' /opt/rbenchmarking/rebench.conf
-sed -i 's/iterations: 15/iterations: 7/' /opt/rbenchmarking/rebench.conf
+#sed -i 's/invocations: 1/invocations: 1/' /opt/rbenchmarking/rebench.conf
+#sed -i 's/iterations: 15/iterations: 7/' /opt/rbenchmarking/rebench.conf
 ##########
 
 
 
-# Rsh baseline 
+# ***  Rsh   *****
 
 cd /opt/rir/build/release
 git checkout 2872a799f6bcd14fe7a3270e86278d784d26020a
@@ -57,7 +57,7 @@ ninja
 PIR_ENABLE=off INLINE_ALL_PROMS=0 /opt/rbenchmarking/Setup/run.sh /opt/rbenchmarking/rebench.conf /opt/rbenchmarking/Benchmarks /opt/rir/build/release "e:PIR-LLVM -df $ARTIFACTS_FOLDER/1172663147.data -R"
 
 
-# Rsh strict
+# ***  Rsh strict *****
 cd /opt/rir/build/release
 git checkout 9c038edb3727233d45b5c6b8b94186451a0c9b6d
 ninja
@@ -126,3 +126,4 @@ cd $PAPER_FOLDER
 make performance
 make # build paper to main.pdf
 
+bash
