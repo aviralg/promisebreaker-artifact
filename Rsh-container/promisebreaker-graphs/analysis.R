@@ -64,7 +64,7 @@ read_lazy(extract_index, "extract-index.fst")
 read_lazy(package_info, "package-info.fst")
 read_lazy(sloc_script, "sloc-corpus.fst")
 read_lazy(sloc_package, "sloc-package.fst")
-read_lazy(corpus, "corpus")
+#read_lazy(corpus, "corpus")
 read_lazy(client, "client")
 read_lazy(parameters, "parameters.fst")
 read_lazy(functions, "functions.fst")
@@ -80,32 +80,32 @@ read_lazy(allocation, "allocation.fst")
 read_lazy(execution, "execution.fst")
 read_lazy(argument_type, "argument_type.fst")
 
-arg_ref <-
-    arg_ref %>%
-    filter(pack_name %in% corpus) %>%
-    filter(is.na(source_pack_name) | source_pack_name %in% corpus)
+# arg_ref <-
+#     arg_ref %>%
+#     filter(pack_name %in% corpus) %>%
+#     filter(is.na(source_pack_name) | source_pack_name %in% corpus)
 
-parameters <-
-    parameters %>%
-    filter(pack_name %in% corpus)
+# parameters <-
+#     parameters %>%
+#     filter(pack_name %in% corpus)
 
-metaprogramming <-
-    metaprogramming %>%
-    filter(source_pack_name %in% corpus) %>%
-    filter(pack_name %in% corpus)
+# metaprogramming <-
+#     metaprogramming %>%
+#     filter(source_pack_name %in% corpus) %>%
+#     filter(pack_name %in% corpus)
 
-functions <-
-    functions %>%
-    filter(pack_name %in% corpus)
+# functions <-
+#     functions %>%
+#     filter(pack_name %in% corpus)
 
-argument_type <-
-    argument_type %>%
-    filter(pack_name %in% corpus)
+# argument_type <-
+#     argument_type %>%
+#     filter(pack_name %in% corpus)
 
-direct_effects <-
-    direct_effects %>%
-    filter(pack_name %in% corpus)
+# direct_effects <-
+#     direct_effects %>%
+#     filter(pack_name %in% corpus)
 
-indirect_effects <-
-    indirect_effects %>%
-    filter(pack_name %in% corpus)
+# indirect_effects <-
+#     indirect_effects %>%
+#     filter(pack_name %in% corpus)
